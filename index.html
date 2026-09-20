@@ -6,6 +6,18 @@
   <title>HaiHalo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#00bcee',
+            'brand-dark': '#00a3d1',
+          }
+        }
+      }
+    }
+  </script>
 </head>
 <body class="bg-gray-900 text-gray-100 h-[100dvh] w-screen overflow-hidden antialiased font-sans">
 
@@ -24,19 +36,19 @@
           placeholder="Username..." 
           required
           autocomplete="off"
-          class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm sm:text-base"
+          class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand transition text-sm sm:text-base"
         />
         <input 
           type="password" 
           id="password-input" 
           placeholder="Password..." 
           required
-          class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm sm:text-base"
+          class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand transition text-sm sm:text-base"
         />
         <button 
           type="submit" 
           id="auth-submit-btn"
-          class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold py-3 rounded-xl text-sm sm:text-base transition shadow-lg"
+          class="w-full bg-brand hover:bg-brand-dark active:scale-95 text-gray-900 font-bold py-3 rounded-xl text-sm sm:text-base transition shadow-lg"
         >
           Masuk
         </button>
@@ -48,7 +60,7 @@
           type="button" 
           onclick="toggleAuthMode()" 
           id="toggle-btn"
-          class="text-emerald-400 font-semibold ml-1 hover:underline focus:outline-none"
+          class="text-brand font-semibold ml-1 hover:underline focus:outline-none"
         >
           Daftar
         </button>
@@ -65,7 +77,7 @@
       <div class="p-4 bg-gray-800 flex justify-between items-center border-b border-gray-700">
         <div>
           <h1 class="text-xl font-bold text-white tracking-wide">HaiHalo</h1>
-          <p id="user-display" class="text-xs text-emerald-400">User: -</p>
+          <p id="user-display" class="text-xs text-brand font-medium">User: -</p>
         </div>
         <button 
           onclick="handleLogout()" 
@@ -77,53 +89,52 @@
 
       <!-- Kolom Pencarian -->
       <div class="p-3 bg-gray-800">
-        <div class="relative">
+        <form onsubmit="handleSearchSubmit(event)" class="relative">
           <input 
             type="text" 
             id="search-input"
             oninput="filterChats()"
-            placeholder="Cari atau mulai chat baru..." 
-            class="w-full bg-gray-700 text-white placeholder-gray-400 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+            placeholder="Cari atau ketik nama untuk chat..." 
+            class="w-full bg-gray-700 text-white placeholder-gray-400 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand transition"
           />
           <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
           </svg>
-        </div>
+        </form>
       </div>
 
       <!-- List Orang / Kontak Chat -->
       <div id="chat-list" class="flex-1 overflow-y-auto divide-y divide-gray-700/50">
-        <!-- List kontak dimasukkan via JS secara dinamis -->
+        <!-- Tempat list kontak -->
       </div>
     </aside>
 
     <!-- AREA CHAT KANAN -->
     <main id="chat-area" class="hidden md:flex flex-1 flex-col h-full bg-gray-900">
       
-      <!-- Placeholder Kosong (Desktop Saat Belum Ada Chat Dipilih) -->
+      <!-- Placeholder Kosong -->
       <div id="chat-placeholder" class="flex-1 flex flex-col items-center justify-center p-6 text-center text-gray-500">
-        <div class="w-20 h-20 mb-4 bg-gray-800 rounded-full flex items-center justify-center text-emerald-500 shadow-inner">
+        <div class="w-20 h-20 mb-4 bg-gray-800 rounded-full flex items-center justify-center text-brand shadow-inner">
           <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
           </svg>
         </div>
         <h3 class="text-lg font-medium text-gray-300">HaiHalo Web</h3>
-        <p class="text-sm mt-1 max-w-sm">Pilih kontak dari daftar di sebelah kiri atau cari nama orang untuk memulai percakapan.</p>
+        <p class="text-sm mt-1 max-w-sm">Ketik nama di kolom pencarian di sebelah kiri untuk mulai mengobrol.</p>
       </div>
 
       <!-- Container Chat Aktif -->
       <div id="active-chat-container" class="hidden flex-1 flex flex-col h-full overflow-hidden">
         
-        <!-- Header Chat Aktif (Nama penerima di atas) -->
+        <!-- Header Chat Aktif -->
         <header class="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-3">
-            <!-- Tombol Kembali (Hanya muncul di Layar HP) -->
             <button onclick="closeChatMobile()" class="md:hidden text-gray-300 hover:text-white p-1 rounded-lg">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
               </svg>
             </button>
-            <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-white text-lg" id="chat-avatar">
+            <div class="w-10 h-10 rounded-full bg-brand font-bold text-gray-900 flex items-center justify-center text-lg" id="chat-avatar">
               ?
             </div>
             <div>
@@ -135,7 +146,7 @@
 
         <!-- Bubble Pesan Chat -->
         <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-950/50">
-          <!-- Pesan-pesan akan muncul di sini -->
+          <!-- Pesan akan muncul di sini -->
         </div>
 
         <!-- Input Kirim Pesan -->
@@ -146,11 +157,11 @@
               id="message-input" 
               placeholder="Ketik pesan..." 
               autocomplete="off"
-              class="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+              class="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-brand transition"
             />
             <button 
               type="submit" 
-              class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shrink-0 shadow-md"
+              class="bg-brand hover:bg-brand-dark active:scale-95 text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold transition shrink-0 shadow-md"
             >
               Kirim
             </button>
@@ -167,11 +178,11 @@
     const socket = io(backendUrl, { transports: ["websocket", "polling"] });
 
     let currentUser = "";
-    let activeTarget = ""; // Menyimpan lawan bicara yang sedang dibuka
+    let activeTarget = "";
     let isRegisterMode = false;
 
-    // Menyarankan beberapa contoh kontak awal / riwayat chat
-    let recentChats = ["Ebisuzawa", "Albert", "Mama", "Kardo"]; 
+    // Daftar kontak awal diset KOSONG
+    let recentChats = []; 
 
     const alertMsg = document.getElementById("alert-msg");
     const authScreen = document.getElementById("auth-screen");
@@ -200,9 +211,21 @@
         currentUser = savedUser;
         userDisplay.innerText = `User: ${currentUser}`;
         authScreen.classList.add("hidden");
+        
+        // Ambil riwayat chat pengguna yang tersimpan di browser
+        const savedChats = localStorage.getItem(`haihalo_chats_${currentUser}`);
+        if (savedChats) {
+          recentChats = JSON.parse(savedChats);
+        }
         renderChatList();
       }
     });
+
+    function saveRecentChats() {
+      if (currentUser) {
+        localStorage.setItem(`haihalo_chats_${currentUser}`, JSON.stringify(recentChats));
+      }
+    }
 
     function renderChatList(filter = "") {
       const chatListEl = document.getElementById("chat-list");
@@ -215,7 +238,7 @@
       if (filtered.length === 0) {
         chatListEl.innerHTML = `
           <div class="p-6 text-center text-gray-500 text-sm">
-            ${filter ? 'Pengguna tidak ditemukan' : 'Belum ada riwayat chat'}
+            ${filter ? 'Tekan Enter untuk menambah kontak ini' : 'Belum ada riwayat chat'}
           </div>`;
         return;
       }
@@ -225,7 +248,7 @@
         item.className = "flex items-center gap-3 p-3.5 hover:bg-gray-700/60 cursor-pointer transition border-b border-gray-700/30";
         item.onclick = () => openChat(name);
         item.innerHTML = `
-          <div class="w-11 h-11 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-white text-base shrink-0">
+          <div class="w-11 h-11 rounded-full bg-brand font-bold text-gray-900 flex items-center justify-center text-base shrink-0">
             ${name.charAt(0).toUpperCase()}
           </div>
           <div class="flex-1 min-w-0">
@@ -241,23 +264,34 @@
       renderChatList(searchInput.value.trim());
     }
 
+    function handleSearchSubmit(e) {
+      e.preventDefault();
+      const query = searchInput.value.trim();
+      if (query !== "" && query !== currentUser) {
+        if (!recentChats.includes(query)) {
+          recentChats.unshift(query);
+          saveRecentChats();
+        }
+        renderChatList();
+        openChat(query);
+        searchInput.value = "";
+      }
+    }
+
     function openChat(targetName) {
       activeTarget = targetName;
       activeChatName.innerText = activeTarget;
       chatAvatar.innerText = activeTarget.charAt(0).toUpperCase();
 
-      // UI Switch
       chatPlaceholder.classList.add("hidden");
       activeChatContainer.classList.remove("hidden");
 
-      // Pengaturan Tampilan Mobile vs Desktop
       sidebar.classList.add("hidden", "md:flex");
       chatArea.classList.remove("hidden");
       chatArea.classList.add("flex");
 
-      // Bersihkan & isi chat awal
       chatBox.innerHTML = "";
-      appendSystemMessage(`Kamu terhubung dalam obrolan dengan ${activeTarget}`);
+      appendSystemMessage(`Obrolan dengan ${activeTarget}`);
     }
 
     function closeChatMobile() {
@@ -321,6 +355,9 @@
             userDisplay.innerText = `User: ${currentUser}`;
             authScreen.classList.add("hidden");
             passwordInput.value = "";
+            
+            const savedChats = localStorage.getItem(`haihalo_chats_${currentUser}`);
+            recentChats = savedChats ? JSON.parse(savedChats) : [];
             renderChatList();
           }
         } else {
@@ -337,6 +374,7 @@
       userDisplay.innerText = "User: -";
       usernameInput.value = "";
       passwordInput.value = "";
+      recentChats = [];
       hideAlert();
       
       closeChatMobile();
@@ -370,7 +408,7 @@
 
       const bubble = document.createElement("div");
       bubble.className = isSelf 
-        ? "bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-sm max-w-[85%] sm:max-w-[70%] text-sm break-words"
+        ? "bg-brand text-gray-950 font-medium px-4 py-2.5 rounded-2xl shadow-sm max-w-[85%] sm:max-w-[70%] text-sm break-words"
         : "bg-gray-800 text-gray-100 border border-gray-700 px-4 py-2.5 rounded-2xl shadow-sm max-w-[85%] sm:max-w-[70%] text-sm break-words";
       
       bubble.innerText = text;
