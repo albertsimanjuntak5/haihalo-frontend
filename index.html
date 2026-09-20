@@ -139,11 +139,9 @@
     socket.on("private_message", (data) => {
       const { sender, message } = data;
       
-      // Jika room chat pengirim sedang terbuka
       if (activeTarget === sender) {
         appendMessage(message, false);
       } else {
-        // Jika sedang membuka room lain atau di halaman utama
         unreadUsers.add(sender);
         if (!allUsers.includes(sender)) {
           allUsers.push(sender);
@@ -179,19 +177,38 @@
       const chatListEl = document.getElementById("chat-list");
       chatListEl.innerHTML = "";
 
-      const filtered = allUsers.filter(name => 
-        name.toLowerCase().includes(filter.toLowerCase()) && name !== currentUser
-      );
+      const query = filter.trim().toLowerCase();
+
+      // Jika tidak mencari dan tidak ada pesan baru, tampilkan petunjuk
+      if (query === "") {
+        if (unreadUsers.size === 0) {
+          chatListEl.innerHTML = `
+            <div class="p-6 text-center text-gray-500 text-xs sm:text-sm">
+              Ketik nama di kolom pencarian untuk mencari pengguna.
+            </div>`;
+          return;
+        }
+      }
+
+      // Filter nama dari database berdasarkan input pencarian / unread
+      const filtered = allUsers.filter(name => {
+        const isNotSelf = name !== currentUser;
+        const matchesQuery = query === "" ? unreadUsers.has(name) : name.toLowerCase().includes(query);
+        return isNotSelf && matchesQuery;
+      });
 
       if (filtered.length === 0) {
-        chatListEl.innerHTML = `<div class="p-6 text-center text-gray-500 text-sm">Tidak ada kontak ditemukan</div>`;
+        chatListEl.innerHTML = `
+          <div class="p-6 text-center text-gray-500 text-xs sm:text-sm">
+            Pengguna "${filter}" tidak ditemukan
+          </div>`;
         return;
       }
 
       filtered.forEach(name => {
         const hasUnread = unreadUsers.has(name);
         const item = document.createElement("div");
-        item.className = "flex items-center gap-3 p-3.5 hover:bg-gray-700/60 cursor-pointer transition border-b border-gray-700/30 relative";
+        item.className = "flex items-center gap-3 p-3.5 hover:bg-gray-700/60 cursor-pointer transition border-b border-gray-700/30";
         item.onclick = () => openChat(name);
         item.innerHTML = `
           <div class="w-11 h-11 rounded-full bg-brand font-bold text-gray-900 flex items-center justify-center text-base shrink-0">
@@ -217,7 +234,7 @@
 
     async function openChat(targetName) {
       activeTarget = targetName;
-      unreadUsers.delete(targetName); // Hapus indikator unread
+      unreadUsers.delete(targetName);
       renderUserList(searchInput.value.trim());
 
       activeChatName.innerText = activeTarget;
@@ -233,7 +250,6 @@
       chatBox.innerHTML = "";
       appendSystemMessage(`Obrolan dengan ${activeTarget}`);
 
-      // Ambil riwayat chat dari Database
       try {
         const res = await fetch(`${backendUrl}/messages?user1=${currentUser}&user2=${activeTarget}`);
         if (res.ok) {
