@@ -82,7 +82,7 @@
             <div class="w-10 h-10 rounded-full bg-brand font-bold text-gray-900 flex items-center justify-center text-lg" id="chat-avatar">?</div>
             <div>
               <h2 id="active-chat-name" class="font-semibold text-white text-base">Nama Kontak</h2>
-              <p class="text-xs text-gray-400">Online</p>
+              <p class="text-xs text-emerald-400 font-medium">Online</p>
             </div>
           </div>
         </header>
@@ -108,6 +108,7 @@
     let activeTarget = "";
     let isRegisterMode = false;
     let allUsers = [];
+    let unreadUsers = new Set();
 
     const alertMsg = document.getElementById("alert-msg");
     const authScreen = document.getElementById("auth-screen");
@@ -137,8 +138,17 @@
 
     socket.on("private_message", (data) => {
       const { sender, message } = data;
+      
+      // Jika room chat pengirim sedang terbuka
       if (activeTarget === sender) {
         appendMessage(message, false);
+      } else {
+        // Jika sedang membuka room lain atau di halaman utama
+        unreadUsers.add(sender);
+        if (!allUsers.includes(sender)) {
+          allUsers.push(sender);
+        }
+        renderUserList(searchInput.value.trim());
       }
     });
 
@@ -179,16 +189,22 @@
       }
 
       filtered.forEach(name => {
+        const hasUnread = unreadUsers.has(name);
         const item = document.createElement("div");
-        item.className = "flex items-center gap-3 p-3.5 hover:bg-gray-700/60 cursor-pointer transition border-b border-gray-700/30";
+        item.className = "flex items-center gap-3 p-3.5 hover:bg-gray-700/60 cursor-pointer transition border-b border-gray-700/30 relative";
         item.onclick = () => openChat(name);
         item.innerHTML = `
           <div class="w-11 h-11 rounded-full bg-brand font-bold text-gray-900 flex items-center justify-center text-base shrink-0">
             ${name.charAt(0).toUpperCase()}
           </div>
           <div class="flex-1 min-w-0">
-            <h4 class="font-medium text-white text-sm truncate">${name}</h4>
-            <p class="text-xs text-gray-400 truncate">Klik untuk mengobrol</p>
+            <div class="flex justify-between items-center">
+              <h4 class="font-medium text-white text-sm truncate">${name}</h4>
+              ${hasUnread ? '<span class="w-2.5 h-2.5 bg-brand rounded-full"></span>' : ''}
+            </div>
+            <p class="text-xs ${hasUnread ? 'text-brand font-semibold' : 'text-gray-400'} truncate">
+              ${hasUnread ? 'Pesan baru!' : 'Klik untuk mengobrol'}
+            </p>
           </div>
         `;
         chatListEl.appendChild(item);
@@ -201,6 +217,9 @@
 
     async function openChat(targetName) {
       activeTarget = targetName;
+      unreadUsers.delete(targetName); // Hapus indikator unread
+      renderUserList(searchInput.value.trim());
+
       activeChatName.innerText = activeTarget;
       chatAvatar.innerText = activeTarget.charAt(0).toUpperCase();
 
@@ -301,6 +320,7 @@
       usernameInput.value = "";
       passwordInput.value = "";
       allUsers = [];
+      unreadUsers.clear();
       hideAlert();
       
       closeChatMobile();
