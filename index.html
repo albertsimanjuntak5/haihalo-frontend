@@ -98,12 +98,11 @@
           </form>
         </footer>
       </div>
-
     </main>
   </div>
 
   <script>
-    // URL Backend Anda, ubah jika deploy ke alamat yang berbeda
+    // URL Backend yang sudah diperbaiki (tidak ada https ganda dan / di akhir)
     const backendUrl = "https://web-production-0d3df9.up.railway.app";
     const socket = io(backendUrl, { transports: ["websocket", "polling"] });
 
@@ -144,14 +143,12 @@
     socket.on("private_message", (data) => {
       const { sender, target, message } = data;
       
-      // Jika pesan masuk ke target dan chat-nya sedang aktif
       if (
         (sender === activeTarget && target === currentUser) || 
         (sender === currentUser && target === activeTarget)
       ) {
         appendMessage(message, sender === currentUser);
       } 
-      // Jika pesan dari orang lain tapi layar chat ke dia tidak sedang dibuka
       else if (sender !== currentUser) {
         unreadUsers.add(sender);
         if (!allUsers.includes(sender)) {
@@ -192,7 +189,6 @@
 
       const query = filter.trim().toLowerCase();
 
-      // Memunculkan text panduan jika tidak search & tidak ada unread
       if (query === "") {
         if (unreadUsers.size === 0) {
           chatListEl.innerHTML = `
@@ -203,7 +199,6 @@
         }
       }
 
-      // Filter daftar pengguna selain diri sendiri
       const filtered = allUsers.filter(name => {
         const isNotSelf = name !== currentUser;
         const matchesQuery = query === "" ? unreadUsers.has(name) : name.toLowerCase().includes(query);
@@ -218,7 +213,6 @@
         return;
       }
 
-      // Render Item List
       filtered.forEach(name => {
         const hasUnread = unreadUsers.has(name);
         const item = document.createElement("div");
