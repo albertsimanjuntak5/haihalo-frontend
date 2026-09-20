@@ -1,119 +1,141 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HaiHalo Chat</title>
-  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background-color: #0b141a; color: #e9edef; display: flex; height: 100vh; }
-    
-    /* Login Overlay */
-    #login-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 999; }
-    .login-box { background: #111b21; padding: 25px; border-radius: 8px; text-align: center; width: 320px; }
-    .login-box input { width: 100%; padding: 10px; margin: 15px 0; border-radius: 5px; border: 1px solid #222d34; background: #2a3942; color: #fff; }
-    .login-box button { width: 100%; padding: 10px; background: #00a884; border: none; color: white; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    
-    /* Sidebar */
-    .sidebar { width: 300px; background-color: #111b21; border-right: 1px solid #222d34; display: flex; flex-direction: column; }
-    .sidebar-header { padding: 15px; background: #202c33; display: flex; justify-content: space-between; align-items: center; }
-    .search-box { padding: 10px; }
-    .search-box input { width: 100%; padding: 8px; background: #202c33; border: none; border-radius: 5px; color: white; }
-    .user-list { flex: 1; overflow-y: auto; }
-    .user-item { padding: 12px 15px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid #182229; }
-    .user-item:hover, .user-item.active { background-color: #2a3942; }
-    .avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .badge { background: #00a884; color: black; font-size: 11px; padding: 2px 6px; border-radius: 10px; margin-left: auto; }
-
-    /* Chat Area */
-    .chat-area { flex: 1; display: flex; flex-direction: column; background: #0b141a; }
-    .chat-header { padding: 15px; background: #202c33; display: flex; align-items: center; gap: 12px; }
-    .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .message { max-width: 60%; padding: 8px 12px; border-radius: 8px; font-size: 14px; word-break: break-word; }
-    .message.sent { background-color: #005c4b; align-self: flex-end; border-top-right-radius: 0; }
-    .message.received { background-color: #202c33; align-self: flex-start; border-top-left-radius: 0; }
-    
-    .chat-input-area { padding: 10px 15px; background: #202c33; display: flex; gap: 10px; align-items: center; }
-    .chat-input-area input { flex: 1; padding: 10px; background: #2a3942; border: none; border-radius: 8px; color: white; }
-    .chat-input-area button { padding: 10px 20px; background: #00a884; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .btn-logout { background: #ea4335; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>HaiHalo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#00bcee',
+            'brand-dark': '#00a3d1',
+          }
+        }
+      }
+    }
+  </script>
 </head>
-<body>
+<body class="bg-gray-900 text-gray-100 h-[100dvh] w-screen overflow-hidden antialiased font-sans">
 
-  <!-- Modal Login -->
-  <div id="login-modal">
-    <div class="login-box">
-      <h2>HaiHalo Login</h2>
-      <input type="text" id="username-input" placeholder="Masukkan Username...">
-      <button onclick="handleLogin()">Masuk</button>
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen" class="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md text-center border border-gray-700">
+      <h1 id="auth-title" class="text-2xl sm:text-3xl font-bold text-white mb-2">Masuk ke HaiHalo</h1>
+      <p id="auth-subtitle" class="text-gray-400 text-sm mb-4">Masukkan username & password kamu</p>
+      
+      <div id="alert-msg" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
+
+      <form onsubmit="handleAuth(event)" class="space-y-4">
+        <input type="text" id="username-input" placeholder="Username..." required autocomplete="off" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-sm sm:text-base" />
+        <input type="password" id="password-input" placeholder="Password..." required class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand text-sm sm:text-base" />
+        <button type="submit" id="auth-submit-btn" class="w-full bg-brand hover:bg-brand-dark active:scale-95 text-gray-900 font-bold py-3 rounded-xl text-sm sm:text-base transition shadow-lg">Masuk</button>
+      </form>
+
+      <div class="mt-6 border-t border-gray-700 pt-4 text-xs sm:text-sm text-gray-400">
+        <span id="toggle-text">Belum punya akun?</span>
+        <button type="button" onclick="toggleAuthMode()" id="toggle-btn" class="text-brand font-semibold ml-1 hover:underline focus:outline-none">Daftar</button>
+      </div>
     </div>
   </div>
 
-  <!-- Sidebar Users -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <div>
-        <strong id="display-username">User</strong>
+  <!-- MAIN APP -->
+  <div class="flex h-full w-full overflow-hidden">
+    
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-full md:w-80 lg:w-96 bg-gray-800 border-r border-gray-700 flex flex-col h-full shrink-0">
+      <div class="p-4 bg-gray-800 flex justify-between items-center border-b border-gray-700">
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-wide">HaiHalo</h1>
+          <p id="user-display" class="text-xs text-brand font-medium">User: -</p>
+        </div>
+        <button onclick="handleLogout()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-600 transition">Keluar</button>
       </div>
-      <button class="btn-logout" onclick="handleLogout()">Keluar</button>
-    </div>
-    <div class="search-box">
-      <input type="text" id="search-input" placeholder="Cari pengguna..." oninput="filterUsers()">
-    </div>
-    <div class="user-list" id="user-list"></div>
-  </div>
 
-  <!-- Main Chat Box -->
-  <div class="chat-area">
-    <div class="chat-header" id="chat-header">
-      <div class="avatar" id="header-avatar">?</div>
-      <div>
-        <h4 id="header-title">Pilih Teman Obrolan</h4>
-        <small id="header-status" style="color: #00a884;"></small>
+      <div class="p-3 bg-gray-800">
+        <input type="text" id="search-input" oninput="filterUsers()" placeholder="Cari kontak..." class="w-full bg-gray-700 text-white placeholder-gray-400 rounded-xl pl-4 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand transition" />
       </div>
-    </div>
 
-    <div class="messages-container" id="messages-container"></div>
+      <div id="chat-list" class="flex-1 overflow-y-auto divide-y divide-gray-700/50"></div>
+    </aside>
 
-    <div class="chat-input-area">
-      <input type="text" id="message-input" placeholder="Ketik pesan..." onkeypress="handleKeyPress(event)">
-      <button onclick="sendMessage()">Kirim</button>
-    </div>
+    <!-- CHAT AREA -->
+    <main id="chat-area" class="hidden md:flex flex-1 flex-col h-full bg-gray-900">
+      
+      <!-- PLACEHOLDER SEBELUM PILIH CHAT -->
+      <div id="chat-placeholder" class="flex-1 flex flex-col items-center justify-center p-6 text-center text-gray-500">
+        <div class="w-20 h-20 mb-4 bg-gray-800 rounded-full flex items-center justify-center text-brand shadow-inner">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-300">HaiHalo Web</h3>
+        <p class="text-sm mt-1 max-w-sm">Pilih kontak dari daftar di sebelah kiri untuk mulai obrolan.</p>
+      </div>
+
+      <!-- AREA AKTIF CHAT -->
+      <div id="active-chat-container" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+        <header class="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <button onclick="closeChatMobile()" class="md:hidden text-gray-300 hover:text-white p-1 rounded-lg">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="w-10 h-10 rounded-full bg-brand font-bold text-gray-900 flex items-center justify-center text-lg" id="chat-avatar">?</div>
+            <div>
+              <h2 id="active-chat-name" class="font-semibold text-white text-base">Nama Kontak</h2>
+              <p class="text-xs text-emerald-400 font-medium">Online</p>
+            </div>
+          </div>
+        </header>
+
+        <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-950/50"></div>
+
+        <footer class="bg-gray-800 p-3 border-t border-gray-700 shrink-0">
+          <form id="chat-form" onsubmit="sendMessage(event)" class="flex gap-2 items-center">
+            <input type="text" id="message-input" placeholder="Ketik pesan..." autocomplete="off" class="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-brand transition" />
+            <button type="submit" class="bg-brand hover:bg-brand-dark active:scale-95 text-gray-900 px-5 py-2.5 rounded-xl text-sm font-bold transition shrink-0 shadow-md">Kirim</button>
+          </form>
+        </footer>
+      </div>
+
+    </main>
   </div>
 
   <script>
-    const BACKEND_URL = "http://localhost:5000"; // Sesuaikan URL Backend jika di-host online
-    const socket = io(BACKEND_URL);
+    // URL Backend Anda, ubah jika deploy ke alamat yang berbeda
+    const backendUrl = "https://web-production-0d3df9.up.railway.app";
+    const socket = io(backendUrl, { transports: ["websocket", "polling"] });
 
-    let currentUser = localStorage.getItem("haihalo_user");
-    let activeTarget = null;
+    let currentUser = "";
+    let activeTarget = "";
+    let isRegisterMode = false;
     let allUsers = [];
     let unreadUsers = new Set();
 
-    // ---------------- INITIALIZATION ----------------
-    window.onload = () => {
-      if (currentUser) {
-        document.getElementById("login-modal").style.display = "none";
-        initApp();
-      }
-    };
-
-    function initApp() {
-      document.getElementById("display-username").innerText = currentUser;
-      
-      // Registrasi user ke room socket saat pertama kali dimuat
-      if (socket.connected) {
-        socket.emit("register_user", currentUser);
-      }
-      
-      loadUsers();
-    }
+    const alertMsg = document.getElementById("alert-msg");
+    const authScreen = document.getElementById("auth-screen");
+    const authTitle = document.getElementById("auth-title");
+    const authSubmitBtn = document.getElementById("auth-submit-btn");
+    const toggleText = document.getElementById("toggle-text");
+    const toggleBtn = document.getElementById("toggle-btn");
+    const usernameInput = document.getElementById("username-input");
+    const passwordInput = document.getElementById("password-input");
+    const userDisplay = document.getElementById("user-display");
+    
+    const sidebar = document.getElementById("sidebar");
+    const chatArea = document.getElementById("chat-area");
+    const chatPlaceholder = document.getElementById("chat-placeholder");
+    const activeChatContainer = document.getElementById("active-chat-container");
+    const activeChatName = document.getElementById("active-chat-name");
+    const chatAvatar = document.getElementById("chat-avatar");
+    const chatBox = document.getElementById("chat-box");
+    const messageInput = document.getElementById("message-input");
+    const searchInput = document.getElementById("search-input");
 
     // ---------------- SOCKET EVENTS ----------------
     socket.on("connect", () => {
-      console.log("Connected to WebSocket");
+      console.log("Socket terhubung!");
       if (currentUser) {
         socket.emit("register_user", currentUser);
       }
@@ -121,151 +143,265 @@
 
     socket.on("private_message", (data) => {
       const { sender, target, message } = data;
-
-      // Jika obrolan lawan bicara sedang dibuka
+      
+      // Jika pesan masuk ke target dan chat-nya sedang aktif
       if (
-        (sender === activeTarget && target === currentUser) ||
+        (sender === activeTarget && target === currentUser) || 
         (sender === currentUser && target === activeTarget)
       ) {
         appendMessage(message, sender === currentUser);
       } 
-      // Jika pesan masuk dari user lain
+      // Jika pesan dari orang lain tapi layar chat ke dia tidak sedang dibuka
       else if (sender !== currentUser) {
         unreadUsers.add(sender);
-        renderUserList(document.getElementById("search-input").value);
+        if (!allUsers.includes(sender)) {
+          allUsers.push(sender);
+        }
+        renderUserList(searchInput.value.trim());
       }
     });
 
-    // ---------------- USER MANAGEMENT ----------------
-    async function handleLogin() {
-      const username = document.getElementById("username-input").value.trim();
-      if (!username) return alert("Username tidak boleh kosong!");
+    // ---------------- INIT APP ----------------
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedUser = localStorage.getItem("haihalo_user");
+      if (savedUser) {
+        currentUser = savedUser;
+        userDisplay.innerText = `User: ${currentUser}`;
+        authScreen.classList.add("hidden");
+        socket.emit("register_user", currentUser);
+        fetchUsersFromDatabase();
+      }
+    });
 
+    // ---------------- FETCH USER ----------------
+    async function fetchUsersFromDatabase() {
       try {
-        const res = await fetch(`${BACKEND_URL}/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username })
-        });
-        const data = await res.json();
-        
-        if (data.status === "success") {
-          currentUser = username;
-          localStorage.setItem("haihalo_user", currentUser);
-          document.getElementById("login-modal").style.display = "none";
-          initApp();
-        } else {
-          alert("Login gagal!");
+        const res = await fetch(`${backendUrl}/users`);
+        if (res.ok) {
+          allUsers = await res.json();
+          renderUserList(searchInput.value.trim());
         }
       } catch (err) {
-        alert("Gagal terhubung ke server backend.");
+        console.error("Gagal mengambil daftar user:", err);
       }
     }
 
-    function handleLogout() {
-      localStorage.removeItem("haihalo_user");
-      location.reload();
-    }
+    function renderUserList(filter = "") {
+      const chatListEl = document.getElementById("chat-list");
+      chatListEl.innerHTML = "";
 
-    async function loadUsers() {
-      try {
-        const res = await fetch(`${BACKEND_URL}/users?current_user=${currentUser}`);
-        const data = await res.json();
-        allUsers = data.users || [];
-        renderUserList();
-      } catch (err) {
-        console.error("Gagal memuat pengguna:", err);
+      const query = filter.trim().toLowerCase();
+
+      // Memunculkan text panduan jika tidak search & tidak ada unread
+      if (query === "") {
+        if (unreadUsers.size === 0) {
+          chatListEl.innerHTML = `
+            <div class="p-6 text-center text-gray-500 text-xs sm:text-sm">
+              Ketik nama di kolom pencarian untuk mencari pengguna.
+            </div>`;
+          return;
+        }
       }
-    }
 
-    function renderUserList(query = "") {
-      const listEl = document.getElementById("user-list");
-      listEl.innerHTML = "";
+      // Filter daftar pengguna selain diri sendiri
+      const filtered = allUsers.filter(name => {
+        const isNotSelf = name !== currentUser;
+        const matchesQuery = query === "" ? unreadUsers.has(name) : name.toLowerCase().includes(query);
+        return isNotSelf && matchesQuery;
+      });
 
-      const filtered = allUsers.filter(u => u.toLowerCase().includes(query.toLowerCase()));
+      if (filtered.length === 0) {
+        chatListEl.innerHTML = `
+          <div class="p-6 text-center text-gray-500 text-xs sm:text-sm">
+            Pengguna "${filter}" tidak ditemukan
+          </div>`;
+        return;
+      }
 
-      filtered.forEach(user => {
+      // Render Item List
+      filtered.forEach(name => {
+        const hasUnread = unreadUsers.has(name);
         const item = document.createElement("div");
-        item.className = `user-item ${user === activeTarget ? "active" : ""}`;
-        item.onclick = () => selectUser(user);
-
-        const hasUnread = unreadUsers.has(user);
-
+        item.className = "flex items-center gap-3 p-3.5 hover:bg-gray-700/60 cursor-pointer transition border-b border-gray-700/30";
+        item.onclick = () => openChat(name);
         item.innerHTML = `
-          <div class="avatar">${user[0].toUpperCase()}</div>
-          <div>
-            <strong>${user}</strong>
-            <div style="font-size: 12px; color: #8696a0;">Klik untuk mengobrol</div>
+          <div class="w-11 h-11 rounded-full bg-brand font-bold text-gray-900 flex items-center justify-center text-base shrink-0">
+            ${name.charAt(0).toUpperCase()}
           </div>
-          ${hasUnread ? `<span class="badge">Baru</span>` : ""}
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-center">
+              <h4 class="font-medium text-white text-sm truncate">${name}</h4>
+              ${hasUnread ? '<span class="w-2.5 h-2.5 bg-brand rounded-full"></span>' : ''}
+            </div>
+            <p class="text-xs ${hasUnread ? 'text-brand font-semibold' : 'text-gray-400'} truncate">
+              ${hasUnread ? 'Pesan baru!' : 'Klik untuk mengobrol'}
+            </p>
+          </div>
         `;
-        listEl.appendChild(item);
+        chatListEl.appendChild(item);
       });
     }
 
     function filterUsers() {
-      const query = document.getElementById("search-input").value;
-      renderUserList(query);
+      renderUserList(searchInput.value.trim());
     }
 
-    async function selectUser(username) {
-      activeTarget = username;
-      unreadUsers.delete(username);
-      
-      document.getElementById("header-avatar").innerText = username[0].toUpperCase();
-      document.getElementById("header-title").innerText = username;
-      document.getElementById("header-status").innerText = "Online";
+    // ---------------- CHAT ACTIONS ----------------
+    async function openChat(targetName) {
+      activeTarget = targetName;
+      unreadUsers.delete(targetName);
+      renderUserList(searchInput.value.trim());
 
-      renderUserList(document.getElementById("search-input").value);
-      await loadMessages();
-    }
+      activeChatName.innerText = activeTarget;
+      chatAvatar.innerText = activeTarget.charAt(0).toUpperCase();
 
-    // ---------------- MESSAGES ----------------
-    async function loadMessages() {
-      if (!activeTarget) return;
+      chatPlaceholder.classList.add("hidden");
+      activeChatContainer.classList.remove("hidden");
 
-      const container = document.getElementById("messages-container");
-      container.innerHTML = "";
+      sidebar.classList.add("hidden", "md:flex");
+      chatArea.classList.remove("hidden");
+      chatArea.classList.add("flex");
+
+      chatBox.innerHTML = "";
+      appendSystemMessage(`Obrolan dengan ${activeTarget}`);
 
       try {
-        const res = await fetch(`${BACKEND_URL}/messages?user1=${currentUser}&user2=${activeTarget}`);
-        const data = await res.json();
-
-        (data.messages || []).forEach(msg => {
-          appendMessage(msg.message, msg.sender === currentUser);
-        });
+        const res = await fetch(`${backendUrl}/messages?user1=${currentUser}&user2=${activeTarget}`);
+        if (res.ok) {
+          const history = await res.json();
+          history.forEach(msg => {
+            appendMessage(msg.message, msg.sender === currentUser);
+          });
+        }
       } catch (err) {
-        console.error("Gagal memuat pesan:", err);
+        console.error("Gagal mengambil riwayat pesan:", err);
       }
     }
 
-    function appendMessage(text, isSent) {
-      const container = document.getElementById("messages-container");
-      const msgDiv = document.createElement("div");
-      msgDiv.className = `message ${isSent ? "sent" : "received"}`;
-      msgDiv.innerText = text;
+    function closeChatMobile() {
+      activeTarget = "";
+      sidebar.classList.remove("hidden");
+      chatArea.classList.add("hidden");
+      chatArea.classList.remove("flex");
+    }
+
+    // ---------------- AUTHENTICATION ----------------
+    function toggleAuthMode() {
+      isRegisterMode = !isRegisterMode;
+      hideAlert();
+      authTitle.innerText = isRegisterMode ? "Buat Akun Baru" : "Masuk ke HaiHalo";
+      authSubmitBtn.innerText = isRegisterMode ? "Daftar" : "Masuk";
+      toggleText.innerText = isRegisterMode ? "Sudah punya akun?" : "Belum punya akun?";
+      toggleBtn.innerText = isRegisterMode ? "Masuk" : "Daftar";
+    }
+
+    function showAlert(message, isError = true) {
+      alertMsg.innerText = message;
+      alertMsg.className = isError 
+        ? "mb-4 p-3 rounded-xl text-sm font-medium bg-red-900/50 text-red-300 border border-red-700 block"
+        : "mb-4 p-3 rounded-xl text-sm font-medium bg-emerald-900/50 text-emerald-300 border border-emerald-700 block";
+    }
+
+    function hideAlert() {
+      alertMsg.className = "hidden mb-4 p-3 rounded-xl text-sm font-medium";
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+      hideAlert();
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      const endpoint = isRegisterMode ? "/register" : "/login";
+
+      try {
+        const response = await fetch(`${backendUrl}${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.status === "success") {
+          if (isRegisterMode) {
+            showAlert("Registrasi berhasil! Silakan masuk.", false);
+            toggleAuthMode();
+          } else {
+            currentUser = username;
+            localStorage.setItem("haihalo_user", username);
+            userDisplay.innerText = `User: ${currentUser}`;
+            authScreen.classList.add("hidden");
+            passwordInput.value = "";
+            
+            socket.emit("register_user", currentUser);
+            fetchUsersFromDatabase();
+          }
+        } else {
+          showAlert(result.message || "Username atau password salah");
+        }
+      } catch (err) {
+        showAlert("Gagal terhubung ke server backend.");
+      }
+    }
+
+    function handleLogout() {
+      currentUser = "";
+      localStorage.removeItem("haihalo_user");
+      userDisplay.innerText = "User: -";
+      usernameInput.value = "";
+      passwordInput.value = "";
+      allUsers = [];
+      unreadUsers.clear();
+      hideAlert();
       
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
+      closeChatMobile();
+      chatPlaceholder.classList.remove("hidden");
+      activeChatContainer.classList.add("hidden");
+
+      if (isRegisterMode) toggleAuthMode();
+      authScreen.classList.remove("hidden");
     }
 
-    function sendMessage() {
-      const input = document.getElementById("message-input");
-      const text = input.value.trim();
-
-      if (!text || !activeTarget) return;
-
-      socket.emit("private_message", {
-        sender: currentUser,
-        target: activeTarget,
-        message: text
-      });
-
-      input.value = "";
+    // ---------------- SEND & RENDER MESSAGES ----------------
+    function sendMessage(e) {
+      e.preventDefault();
+      const msg = messageInput.value.trim();
+      if (msg !== "" && activeTarget !== "") {
+        socket.emit("private_message", {
+          sender: currentUser,
+          target: activeTarget,
+          message: msg
+        });
+        messageInput.value = "";
+      }
     }
 
-    function handleKeyPress(e) {
-      if (e.key === "Enter") sendMessage();
+    function appendMessage(text, isSelf) {
+      const wrapper = document.createElement("div");
+      wrapper.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = isSelf 
+        ? "bg-brand text-gray-950 font-medium px-4 py-2.5 rounded-2xl shadow-sm max-w-[85%] sm:max-w-[70%] text-sm break-words"
+        : "bg-gray-800 text-gray-100 border border-gray-700 px-4 py-2.5 rounded-2xl shadow-sm max-w-[85%] sm:max-w-[70%] text-sm break-words";
+      
+      bubble.innerText = text;
+      wrapper.appendChild(bubble);
+      chatBox.appendChild(wrapper);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendSystemMessage(text) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex justify-center my-2";
+
+      const badge = document.createElement("div");
+      badge.className = "bg-gray-800/80 text-gray-400 text-xs px-3 py-1 rounded-full border border-gray-700/50";
+      badge.innerText = text;
+
+      wrapper.appendChild(badge);
+      chatBox.appendChild(wrapper);
     }
   </script>
 </body>
