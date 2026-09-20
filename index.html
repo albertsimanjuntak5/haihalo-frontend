@@ -103,7 +103,7 @@
   </footer>
 
   <script>
-    const backendUrl = "https://web-production-0d3df9.up.railway.app";
+const backendUrl = "https://web-production-0d3df9.up.railway.app";
     const socket = io(backendUrl, { transports: ["websocket", "polling"] });
 
     let currentUser = "";
@@ -120,6 +120,16 @@
     const userDisplay = document.getElementById("user-display");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message-input");
+
+    // CEK SESSION SAAT HALAMAN DI-REFRESH
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedUser = localStorage.getItem("haihalo_user");
+      if (savedUser) {
+        currentUser = savedUser;
+        userDisplay.innerText = `User: ${currentUser}`;
+        authScreen.classList.add("hidden");
+      }
+    });
 
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
@@ -171,6 +181,8 @@
             toggleAuthMode();
           } else {
             currentUser = username;
+            // Simpan ke localStorage agar tidak ter-reset saat refresh
+            localStorage.setItem("haihalo_user", username);
             userDisplay.innerText = `User: ${currentUser}`;
             authScreen.classList.add("hidden");
             passwordInput.value = "";
@@ -183,15 +195,15 @@
       }
     }
 
-    // Fungsi untuk Logout / Keluar
+    // FUNGSI LOGOUT (Hapus session dari localStorage)
     function handleLogout() {
       currentUser = "";
+      localStorage.removeItem("haihalo_user");
       userDisplay.innerText = "User: -";
       usernameInput.value = "";
       passwordInput.value = "";
       hideAlert();
       
-      // Kembalikan ke mode Masuk jika sebelumnya di mode Daftar
       if (isRegisterMode) {
         toggleAuthMode();
       }
