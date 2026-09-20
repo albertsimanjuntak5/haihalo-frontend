@@ -7,107 +7,171 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
-<body class="bg-indigo-600 h-[100dvh] w-screen flex flex-col justify-between overflow-hidden antialiased">
+<body class="bg-gray-900 text-gray-100 h-[100dvh] w-screen overflow-hidden antialiased font-sans">
 
   <!-- ================= HALAMAN AUTH ================= -->
-  <div id="auth-screen" class="fixed inset-0 z-50 bg-indigo-600 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-md text-center">
-      
-      <h1 id="auth-title" class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Masuk ke HaiHalo</h1>
-      <p id="auth-subtitle" class="text-gray-500 text-sm sm:text-base mb-4">Masukkan username & password kamu</p>
+  <div id="auth-screen" class="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md text-center border border-gray-700">
+      <h1 id="auth-title" class="text-2xl sm:text-3xl font-bold text-white mb-2">Masuk ke HaiHalo</h1>
+      <p id="auth-subtitle" class="text-gray-400 text-sm mb-4">Masukkan username & password kamu</p>
       
       <div id="alert-msg" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
 
       <form onsubmit="handleAuth(event)" class="space-y-4">
-        <div>
-          <input 
-            type="text" 
-            id="username-input" 
-            placeholder="Username..." 
-            required
-            autocomplete="off"
-            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-          />
-        </div>
-        <div>
-          <input 
-            type="password" 
-            id="password-input" 
-            placeholder="Password..." 
-            required
-            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-          />
-        </div>
-        
+        <input 
+          type="text" 
+          id="username-input" 
+          placeholder="Username..." 
+          required
+          autocomplete="off"
+          class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm sm:text-base"
+        />
+        <input 
+          type="password" 
+          id="password-input" 
+          placeholder="Password..." 
+          required
+          class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm sm:text-base"
+        />
         <button 
           type="submit" 
           id="auth-submit-btn"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold py-3 rounded-xl text-sm sm:text-base transition shadow-md"
+          class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold py-3 rounded-xl text-sm sm:text-base transition shadow-lg"
         >
           Masuk
         </button>
       </form>
 
-      <div class="mt-6 border-t pt-4 text-xs sm:text-sm text-gray-600">
+      <div class="mt-6 border-t border-gray-700 pt-4 text-xs sm:text-sm text-gray-400">
         <span id="toggle-text">Belum punya akun?</span>
         <button 
           type="button" 
           onclick="toggleAuthMode()" 
           id="toggle-btn"
-          class="text-indigo-600 font-semibold ml-1 hover:underline focus:outline-none"
+          class="text-emerald-400 font-semibold ml-1 hover:underline focus:outline-none"
         >
           Daftar
         </button>
       </div>
-
     </div>
   </div>
 
-  <!-- ================= HALAMAN CHAT ================= -->
-  <header class="bg-indigo-600 text-white p-4 shadow-md flex justify-between items-center shrink-0">
-    <div>
-      <h1 class="text-lg sm:text-xl font-bold tracking-wide">HaiHalo</h1>
-      <p id="user-display" class="text-xs text-indigo-200">User: -</p>
-    </div>
-    <!-- Tombol Keluar menggantikan indikator status -->
-    <button 
-      onclick="handleLogout()" 
-      class="bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl transition border border-indigo-500 shadow-sm"
-    >
-      Keluar
-    </button>
-  </header>
+  <!-- ================= APLIKASI UTAMA ================= -->
+  <div class="flex h-full w-full overflow-hidden">
+    
+    <!-- SIDEBAR KIRI: LIST CHAT & PENCARIAN -->
+    <aside id="sidebar" class="w-full md:w-80 lg:w-96 bg-gray-800 border-r border-gray-700 flex flex-col h-full shrink-0">
+      <!-- Header Sidebar -->
+      <div class="p-4 bg-gray-800 flex justify-between items-center border-b border-gray-700">
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-wide">HaiHalo</h1>
+          <p id="user-display" class="text-xs text-emerald-400">User: -</p>
+        </div>
+        <button 
+          onclick="handleLogout()" 
+          class="bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-600 transition"
+        >
+          Keluar
+        </button>
+      </div>
 
-  <main id="chat-box" class="bg-gray-100 flex-1 overflow-y-auto p-4 space-y-3 w-full max-w-4xl mx-auto">
-    <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 max-w-[85%] sm:max-w-[70%] w-fit">
-      <p class="text-gray-800 text-sm sm:text-base">Selamat datang! Kamu berhasil masuk.</p>
-    </div>
-  </main>
+      <!-- Kolom Pencarian -->
+      <div class="p-3 bg-gray-800">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="search-input"
+            oninput="filterChats()"
+            placeholder="Cari atau mulai chat baru..." 
+            class="w-full bg-gray-700 text-white placeholder-gray-400 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+          />
+          <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+      </div>
 
-  <footer class="bg-white p-3 border-t border-gray-200 shrink-0 w-full max-w-4xl mx-auto">
-    <form id="chat-form" onsubmit="sendMessage(event)" class="flex gap-2 items-center">
-      <input 
-        type="text" 
-        id="message-input" 
-        placeholder="Ketik pesan..." 
-        autocomplete="off"
-        class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-      />
-      <button 
-        type="submit" 
-        class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-5 py-2.5 rounded-xl text-sm sm:text-base font-semibold transition shrink-0"
-      >
-        Kirim
-      </button>
-    </form>
-  </footer>
+      <!-- List Orang / Kontak Chat -->
+      <div id="chat-list" class="flex-1 overflow-y-auto divide-y divide-gray-700/50">
+        <!-- List kontak dimasukkan via JS secara dinamis -->
+      </div>
+    </aside>
+
+    <!-- AREA CHAT KANAN -->
+    <main id="chat-area" class="hidden md:flex flex-1 flex-col h-full bg-gray-900">
+      
+      <!-- Placeholder Kosong (Desktop Saat Belum Ada Chat Dipilih) -->
+      <div id="chat-placeholder" class="flex-1 flex flex-col items-center justify-center p-6 text-center text-gray-500">
+        <div class="w-20 h-20 mb-4 bg-gray-800 rounded-full flex items-center justify-center text-emerald-500 shadow-inner">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-300">HaiHalo Web</h3>
+        <p class="text-sm mt-1 max-w-sm">Pilih kontak dari daftar di sebelah kiri atau cari nama orang untuk memulai percakapan.</p>
+      </div>
+
+      <!-- Container Chat Aktif -->
+      <div id="active-chat-container" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+        
+        <!-- Header Chat Aktif (Nama penerima di atas) -->
+        <header class="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <!-- Tombol Kembali (Hanya muncul di Layar HP) -->
+            <button onclick="closeChatMobile()" class="md:hidden text-gray-300 hover:text-white p-1 rounded-lg">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-white text-lg" id="chat-avatar">
+              ?
+            </div>
+            <div>
+              <h2 id="active-chat-name" class="font-semibold text-white text-base">Nama Kontak</h2>
+              <p class="text-xs text-gray-400">Online</p>
+            </div>
+          </div>
+        </header>
+
+        <!-- Bubble Pesan Chat -->
+        <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-950/50">
+          <!-- Pesan-pesan akan muncul di sini -->
+        </div>
+
+        <!-- Input Kirim Pesan -->
+        <footer class="bg-gray-800 p-3 border-t border-gray-700 shrink-0">
+          <form id="chat-form" onsubmit="sendMessage(event)" class="flex gap-2 items-center">
+            <input 
+              type="text" 
+              id="message-input" 
+              placeholder="Ketik pesan..." 
+              autocomplete="off"
+              class="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-2.5 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+            />
+            <button 
+              type="submit" 
+              class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shrink-0 shadow-md"
+            >
+              Kirim
+            </button>
+          </form>
+        </footer>
+
+      </div>
+
+    </main>
+  </div>
 
   <script>
-const backendUrl = "https://web-production-0d3df9.up.railway.app";
+    const backendUrl = "https://web-production-0d3df9.up.railway.app";
     const socket = io(backendUrl, { transports: ["websocket", "polling"] });
 
     let currentUser = "";
+    let activeTarget = ""; // Menyimpan lawan bicara yang sedang dibuka
     let isRegisterMode = false;
+
+    // Menyarankan beberapa contoh kontak awal / riwayat chat
+    let recentChats = ["Ebisuzawa", "Albert", "Mama", "Kardo"]; 
 
     const alertMsg = document.getElementById("alert-msg");
     const authScreen = document.getElementById("auth-screen");
@@ -118,18 +182,90 @@ const backendUrl = "https://web-production-0d3df9.up.railway.app";
     const usernameInput = document.getElementById("username-input");
     const passwordInput = document.getElementById("password-input");
     const userDisplay = document.getElementById("user-display");
+    
+    const sidebar = document.getElementById("sidebar");
+    const chatArea = document.getElementById("chat-area");
+    const chatPlaceholder = document.getElementById("chat-placeholder");
+    const activeChatContainer = document.getElementById("active-chat-container");
+    const activeChatName = document.getElementById("active-chat-name");
+    const chatAvatar = document.getElementById("chat-avatar");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message-input");
+    const searchInput = document.getElementById("search-input");
 
-    // CEK SESSION SAAT HALAMAN DI-REFRESH
+    // CEK SESSION SAAT HALAMAN DILOAD
     window.addEventListener("DOMContentLoaded", () => {
       const savedUser = localStorage.getItem("haihalo_user");
       if (savedUser) {
         currentUser = savedUser;
         userDisplay.innerText = `User: ${currentUser}`;
         authScreen.classList.add("hidden");
+        renderChatList();
       }
     });
+
+    function renderChatList(filter = "") {
+      const chatListEl = document.getElementById("chat-list");
+      chatListEl.innerHTML = "";
+
+      const filtered = recentChats.filter(name => 
+        name.toLowerCase().includes(filter.toLowerCase()) && name !== currentUser
+      );
+
+      if (filtered.length === 0) {
+        chatListEl.innerHTML = `
+          <div class="p-6 text-center text-gray-500 text-sm">
+            ${filter ? 'Pengguna tidak ditemukan' : 'Belum ada riwayat chat'}
+          </div>`;
+        return;
+      }
+
+      filtered.forEach(name => {
+        const item = document.createElement("div");
+        item.className = "flex items-center gap-3 p-3.5 hover:bg-gray-700/60 cursor-pointer transition border-b border-gray-700/30";
+        item.onclick = () => openChat(name);
+        item.innerHTML = `
+          <div class="w-11 h-11 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-white text-base shrink-0">
+            ${name.charAt(0).toUpperCase()}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-medium text-white text-sm truncate">${name}</h4>
+            <p class="text-xs text-gray-400 truncate">Klik untuk membuka chat</p>
+          </div>
+        `;
+        chatListEl.appendChild(item);
+      });
+    }
+
+    function filterChats() {
+      renderChatList(searchInput.value.trim());
+    }
+
+    function openChat(targetName) {
+      activeTarget = targetName;
+      activeChatName.innerText = activeTarget;
+      chatAvatar.innerText = activeTarget.charAt(0).toUpperCase();
+
+      // UI Switch
+      chatPlaceholder.classList.add("hidden");
+      activeChatContainer.classList.remove("hidden");
+
+      // Pengaturan Tampilan Mobile vs Desktop
+      sidebar.classList.add("hidden", "md:flex");
+      chatArea.classList.remove("hidden");
+      chatArea.classList.add("flex");
+
+      // Bersihkan & isi chat awal
+      chatBox.innerHTML = "";
+      appendSystemMessage(`Kamu terhubung dalam obrolan dengan ${activeTarget}`);
+    }
+
+    function closeChatMobile() {
+      activeTarget = "";
+      sidebar.classList.remove("hidden");
+      chatArea.classList.add("hidden");
+      chatArea.classList.remove("flex");
+    }
 
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
@@ -150,8 +286,8 @@ const backendUrl = "https://web-production-0d3df9.up.railway.app";
     function showAlert(message, isError = true) {
       alertMsg.innerText = message;
       alertMsg.className = isError 
-        ? "mb-4 p-3 rounded-xl text-sm font-medium bg-red-100 text-red-700 block"
-        : "mb-4 p-3 rounded-xl text-sm font-medium bg-green-100 text-green-700 block";
+        ? "mb-4 p-3 rounded-xl text-sm font-medium bg-red-900/50 text-red-300 border border-red-700 block"
+        : "mb-4 p-3 rounded-xl text-sm font-medium bg-emerald-900/50 text-emerald-300 border border-emerald-700 block";
     }
 
     function hideAlert() {
@@ -181,11 +317,11 @@ const backendUrl = "https://web-production-0d3df9.up.railway.app";
             toggleAuthMode();
           } else {
             currentUser = username;
-            // Simpan ke localStorage agar tidak ter-reset saat refresh
             localStorage.setItem("haihalo_user", username);
             userDisplay.innerText = `User: ${currentUser}`;
             authScreen.classList.add("hidden");
             passwordInput.value = "";
+            renderChatList();
           }
         } else {
           showAlert(result.message || "Username atau password tidak sesuai");
@@ -195,7 +331,6 @@ const backendUrl = "https://web-production-0d3df9.up.railway.app";
       }
     }
 
-    // FUNGSI LOGOUT (Hapus session dari localStorage)
     function handleLogout() {
       currentUser = "";
       localStorage.removeItem("haihalo_user");
@@ -204,17 +339,18 @@ const backendUrl = "https://web-production-0d3df9.up.railway.app";
       passwordInput.value = "";
       hideAlert();
       
-      if (isRegisterMode) {
-        toggleAuthMode();
-      }
-      
+      closeChatMobile();
+      chatPlaceholder.classList.remove("hidden");
+      activeChatContainer.classList.add("hidden");
+
+      if (isRegisterMode) toggleAuthMode();
       authScreen.classList.remove("hidden");
     }
 
     function sendMessage(e) {
       e.preventDefault();
       const msg = messageInput.value.trim();
-      if (msg !== "") {
+      if (msg !== "" && activeTarget !== "") {
         const fullMessage = `${currentUser}: ${msg}`;
         appendMessage(msg, true);
         socket.emit("message", fullMessage);
@@ -234,14 +370,26 @@ const backendUrl = "https://web-production-0d3df9.up.railway.app";
 
       const bubble = document.createElement("div");
       bubble.className = isSelf 
-        ? "bg-indigo-600 text-white p-3 rounded-2xl shadow-sm max-w-[85%] sm:max-w-[70%] text-sm sm:text-base break-words"
-        : "bg-white text-gray-800 p-3 rounded-2xl shadow-sm border border-gray-200 max-w-[85%] sm:max-w-[70%] text-sm sm:text-base break-words";
+        ? "bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-sm max-w-[85%] sm:max-w-[70%] text-sm break-words"
+        : "bg-gray-800 text-gray-100 border border-gray-700 px-4 py-2.5 rounded-2xl shadow-sm max-w-[85%] sm:max-w-[70%] text-sm break-words";
       
       bubble.innerText = text;
       wrapper.appendChild(bubble);
       chatBox.appendChild(wrapper);
 
       chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendSystemMessage(text) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex justify-center my-2";
+
+      const badge = document.createElement("div");
+      badge.className = "bg-gray-800/80 text-gray-400 text-xs px-3 py-1 rounded-full border border-gray-700/50";
+      badge.innerText = text;
+
+      wrapper.appendChild(badge);
+      chatBox.appendChild(wrapper);
     }
   </script>
 </body>
