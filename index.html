@@ -166,7 +166,7 @@
         const res = await fetch(`${backendUrl}/users`);
         if (res.ok) {
           allUsers = await res.json();
-          renderUserList();
+          renderUserList(searchInput.value.trim());
         }
       } catch (err) {
         console.error("Gagal mengambil daftar user:", err);
@@ -179,7 +179,7 @@
 
       const query = filter.trim().toLowerCase();
 
-      // Jika tidak mencari dan tidak ada pesan baru, tampilkan petunjuk
+      // Jika tidak mencari dan tidak ada unread, munculkan petunjuk
       if (query === "") {
         if (unreadUsers.size === 0) {
           chatListEl.innerHTML = `
@@ -190,7 +190,7 @@
         }
       }
 
-      // Filter nama dari database berdasarkan input pencarian / unread
+      // Filter daftar pengguna dari DB
       const filtered = allUsers.filter(name => {
         const isNotSelf = name !== currentUser;
         const matchesQuery = query === "" ? unreadUsers.has(name) : name.toLowerCase().includes(query);
@@ -322,7 +322,7 @@
             fetchUsersFromDatabase();
           }
         } else {
-          showAlert(result.message || "Username atau password tidak sesuai");
+          showAlert(result.message || "Username atau password salah");
         }
       } catch (err) {
         showAlert("Gagal terhubung ke server backend.");
